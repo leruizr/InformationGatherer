@@ -1,0 +1,7 @@
+{    
+    "newsApiurl": "http://eventregistry.org/api/v1/article/getArticles",
+    "apiKey": "",
+    "storageAccountName": "",
+    "storageAccountKey": "",
+    "storageAccountFileSystemName": ""
+}
