@@ -1,0 +1,194 @@
+PARA CREAR EL FLUJO DE TRABAJO CON LOS SERVICIOS DE AZURE TENER EN CUENTA LO SIGUIENTE :
+
+Provisión de Azure Data Lake Storage (ADLS): Primero, debes crear una cuenta de Azure Data Lake Storage Gen2 a través del portal de Azure. 
+ADLS Gen2 ofrece características de seguridad avanzadas y es altamente escalable.
+
+Configuración del espacio de trabajo de Azure Databricks: 
+Crea un espacio de trabajo de Azure Databricks si aún no tienes uno. Esto también se puede hacer a través del portal de Azure.
+
+Asignación de permisos requeridos: 
+Asigna los permisos necesarios al principal de servicio de Databricks (un tipo de aplicación en Azure Active Directory) 
+para acceder al almacenamiento de Data Lake. Esto se hace generalmente asignando el rol de contribuidor de datos de 
+blob de almacenamiento al principal de servicio para la cuenta de almacenamiento de Data Lake.
+
+Configuración de Databricks para acceder a Data Lake: 
+En tu espacio de trabajo de Databricks, configura el clúster para acceder a ADLS Gen2. 
+Esto implica configurar las configuraciones necesarias 
+y las credenciales de acceso (como ID de cliente, ID de inquilino, clave secreta) en el clúster de Databricks 
+para que pueda interactuar con ADLS Gen2.
+
+Montaje de almacenamiento ADLS Gen2: 
+Puedes montar sistemas de archivos ADLS Gen2 en DBFS (Sistema de archivos de Databricks)
+ utilizando DBUtils o configuraciones de Spark. Esto te permite acceder a los datos en ADLS Gen2 
+ como si fuera un sistema de archivos local en Databricks.
+
+Acceso y procesamiento de datos: 
+Una vez montado, puedes usar los cuadernos de Databricks para acceder 
+y procesar los datos almacenados en tu almacenamiento de sistema de archivos ADLS. 
+Puedes leer y escribir datos utilizando las API de Spark adecuadas.
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+DATABRICKS: 
+
+En el DataBricks se pueden emplear los Notebooks en los cuales se pueden ejecutar bloques de codigo en python
+estas se pueden considerar maquinas virtuales y a continuacion se muestran 5 bloques de codigo en donde se
+explica que hace cada uno.
+
+Consideraciones :
+
+1. En el primer bloque de codigo se debe diligenciar la informacion con su respectiva cuenta de almacenamiento y credenciales.
+
+2. En todos los bloques de codigo aparece alguna de las dos siguientes lineas de codigo : 
+
+df = spark.read.option("multiLine", "true").json("/mnt/news/2023-12/2023-12-11_19-13-57.json")
+
+news_df = spark.read.option("multiLine", "true").json("/mnt/news/2023-12/2023-12-11_19-13-57.json")
+
+se debe modificar los nombres de las carpetas y nombre del archivo .json en esta parte ("/mnt/news/2023-12/2023-12-11_19-13-57.json")
+
+
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+BLOQUE DE CODIGO NUMERO 1:
+
+
+Importar la clase DBUtils del módulo pyspark.dbutils
+from pyspark.dbutils import DBUtils
+
+# Crear una instancia de DBUtils utilizando el objeto spark
+dbutils = DBUtils(spark)
+
+# Definir información de la cuenta de almacenamiento de Azure y credenciales de la aplicación de Azure AD
+storage_account_name = ""
+filesystem_name = ""
+directory_name = ""  # Si se desea montar un directorio específico
+client_id = ""
+client_secret = ""
+tenant_id = ""
+
+# Configuraciones para la autenticación OAuth con Azure Data Lake Storage Gen2
+configs = {
+    "fs.azure.account.auth.type": "OAuth",
+    "fs.azure.account.oauth.provider.type": "org.apache.hadoop.fs.azurebfs.oauth2.ClientCredsTokenProvider",
+    "fs.azure.account.oauth2.client.id": client_id,
+    "fs.azure.account.oauth2.client.secret": client_secret,
+    "fs.azure.account.oauth2.client.endpoint": f"https://login.microsoftonline.com/{tenant_id}/oauth2/token"
+}
+
+# Punto de montaje para el sistema de archivos de Azure Data Lake Storage Gen2
+mount_point = f"/mnt/{filesystem_name}"
+
+# Montar el sistema de archivos utilizando dbutils.fs.mount
+dbutils.fs.mount(
+    source=f"abfss://{filesystem_name}@{storage_account_name}.dfs.core.windows.net/{directory_name}",
+    mount_point=mount_point,
+    extra_configs=configs
+)
+
+# Mostrar la lista de archivos en el punto de montaje
+display(dbutils.fs.ls(mount_point))
+
+# Leer datos en formato JSON desde un archivo específico en el sistema de archivos montado
+df = spark.read.option("multiLine", "true").json("/mnt/news/2023-12/2023-12-11_19-13-57.json")
+---------------------------------------------------------------------------------------------------------------------------------------------------
+
+BLOQUE DE CODIGO NUMERO 2:
+
+# Desmontar el punto de montaje "/mnt/news" en el sistema de archivos
+dbutils.fs.unmount("/mnt/news")
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+
+BLOQUE DE CODIGO NUMERO 3:
+
+# Leer datos en formato JSON desde un archivo específico en el sistema de archivos montado
+df = spark.read.option("multiLine", "true").json("/mnt/news/2023-12/2023-12-11_19-13-57.json")
+
+# Mostrar el esquema para entender la estructura de los datos
+df.printSchema()
+
+# Mostrar las primeras filas del DataFrame
+display(df.show())
+
+# Convertir a un DataFrame de Pandas (para conjuntos de datos pequeños)
+pandas_df = df.toPandas()
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+BLOQUE DE CODIGO NUMERO 4:
+
+# Importar las bibliotecas necesarias
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import to_date
+import matplotlib.pyplot as plt
+
+# Inicializar la sesión de Spark con el nombre de la aplicación "NewsAnalysis"
+spark = SparkSession.builder.appName("NewsAnalysis").getOrCreate()
+
+# Suponiendo que has cargado tus datos en un DataFrame de Spark llamado 'news_df'
+# Reemplaza 'path_to_your_file.json' con la ruta a tu archivo de datos real
+news_df = spark.read.option("multiLine", "true").json("/mnt/news/2023-12/2023-12-11_19-13-57.json")
+
+# Convertir la fecha de tipo cadena a tipo fecha y contar los artículos de noticias por fecha
+news_count_by_date = news_df.withColumn("date", to_date("date")) \
+                            .groupBy("date") \
+                            .count() \
+                            .orderBy("date")
+
+# Convertir a un DataFrame de Pandas para trazar el gráfico
+news_count_pd = news_count_by_date.toPandas()
+
+# Trama
+plt.figure(figsize=(10, 6))
+plt.bar(news_count_pd["date"], news_count_pd["count"])
+plt.xlabel("Fecha")
+plt.ylabel("Número de Artículos de Noticias")
+plt.title("Número de Artículos de Noticias por Fecha")
+plt.xticks(rotation=45)
+plt.show()
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+
+BLOQUE DE CODIGO NUMERO 5:
+
+# Importar las bibliotecas necesarias
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import length, col
+
+# Inicializar la sesión de Spark con el nombre de la aplicación "NewsTransformation"
+spark = SparkSession.builder.appName("NewsTransformation").getOrCreate()
+
+# Cargar tus datos desde un archivo específico en el sistema de archivos montado
+news_df = spark.read.option("multiLine", "true").json("/mnt/news/2023-12/2023-12-11_19-13-57.json")
+
+# 1. Agrupar por 'source_uri' y contar los artículos
+source_article_count = news_df.groupBy("source_uri").count()
+
+# 2. Agregar una nueva columna para la longitud del cuerpo del artículo
+news_df_with_length = news_df.withColumn("body_length", length("body"))
+
+# 3. Filtrar artículos, por ejemplo, solo tipo 'news'
+news_only_df = news_df_with_length.filter(news_df_with_length["dataType"] == "news")
+
+# 4. Eliminar la columna 'url'
+news_df_transformed = news_only_df.drop("url")
+
+# 4.1 Eliminar la columna 'categories'
+news_df_transformed = news_df_transformed.drop("categories")
+
+# 5. Unir los DataFrames transformados
+# Suponiendo que 'source_uri' es un identificador único para cada artículo
+final_df = news_df_transformed.join(source_article_count, "source_uri")
+
+# Ahora 'final_df' es el DataFrame que contiene todas las transformaciones
+display(final_df.show())
+
+# Definir la ruta para guardar en Azure Data Lake (reemplazar con tu ruta real)
+save_path = "/mnt/news/output"
+
+# Escribir el DataFrame en Azure Data Lake en formato parquet (o cualquier otro formato que prefieras)
+# Coalesce el DataFrame a 1 partición y escribe en formato JSON
+final_df.coalesce(1).write.mode("overwrite").json(save_path)

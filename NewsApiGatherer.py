@@ -1,22 +1,35 @@
-import requests
-import AzureHelper
-import ConfigurationHelper
-from datetime import datetime, timedelta
+# Importar los módulos necesarios
+import requests  # Para realizar solicitudes HTTP
+import AzureHelper  # Módulo personalizado para interactuar con Azure
+import ConfigurationHelper  # Módulo personalizado para obtener la configuración
+from datetime import datetime, timedelta  # Para trabajar con fechas y horas
 
+# Obtener el año y el mes actuales
 current_year = datetime.now().year
 current_month = datetime.now().month
+
+# Crear una cadena de texto con el año y mes actuales en formato "YYYY-MM"
 current_year_month = f"{current_year:04d}-{current_month:02d}"
+
+# Obtener la fecha y hora actuales
 current_datetime = datetime.now()
+
+# Obtener el nombre de la fecha siete días atrás en formato "YYYY-MM-DD"
 seven_days_ago_name = (current_datetime - timedelta(days=7)).strftime("%Y-%m-%d")
+
+# Crear un nombre de archivo en formato "YYYY-MM-DD_HH-MM-SS.json"
 file_name = current_datetime.strftime("%Y-%m-%d_%H-%M-%S.json")
+
+# Obtener la configuración del programa
 configuration = ConfigurationHelper.get_configuration()
 
+# Definir una función para obtener información de noticias
 def getNewsInformation():
-
+    # Obtener la URL del servicio y la clave API de la configuración
     serviceUrl = configuration["newsApiurl"]
     apiKey = configuration["apiKey"]
 
-    # Construct the JSON body
+    # Construir el cuerpo JSON para la solicitud
     json_body = {
         "action": "getArticles",
         "keyword": ["Colombia", "Latinoamerica"],
@@ -29,27 +42,27 @@ def getNewsInformation():
         "dataType": ["news", "pr"],
         "apiKey": apiKey,
         "forceMaxDataTimeWindow": 7,
-        "lang" : "spa",
-        "dateStart" : seven_days_ago_name,
-        "categoryUri" : ["news/Health", "news/Business"]
+        "lang": "spa",
+        "dateStart": seven_days_ago_name,
+        "categoryUri": ["news/Health", "news/Business"]
     }
 
-    # Make the API request
+    # Realizar la solicitud a la API
     try:
         response = requests.post(serviceUrl, json=json_body)
         
-        # Check if the request was successful (status code 200)
+        # Verificar si la solicitud fue exitosa (código de estado 200)
         if response.status_code == 200:
             data = response.json()
             return data
-            # Process the response data as needed
+            # Procesar los datos de respuesta según sea necesario
             # print(json.dumps(data, indent=2))
         else:
-            print(f"API request failed with status code: {response.status_code}")
+            print(f"Solicitud a la API fallida con código de estado: {response.status_code}")
     except Exception as e:
-        print(f"Error making API request: {e}")
+        print(f"Error al realizar la solicitud a la API: {e}")
 
-
+# Definir una función para extraer información relevante de las noticias
 def extractNewsInformation(data):
     result = []
     for article in data['articles']['results']:
@@ -65,16 +78,17 @@ def extractNewsInformation(data):
         result.append(extracted_data)
     return result
 
+# Función principal del programa
 def main():
-
-    # get information from API
+    # Obtener información de la API de noticias
     newsApiData = getNewsInformation()
 
-    # Extracting relevant fields
+    # Extraer campos relevantes
     formattedNewsApiData = extractNewsInformation(newsApiData)
     
-    # Store result on Azure
+    # Almacenar el resultado en Azure
     AzureHelper.StoreJsonResult(formattedNewsApiData, current_year_month, file_name)
 
+# Ejecutar la función principal si el script se ejecuta directamente
 if __name__ == "__main__":
     main()
