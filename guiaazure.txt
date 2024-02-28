@@ -1,59 +1,34 @@
-PARA CREAR EL FLUJO DE TRABAJO CON LOS SERVICIOS DE AZURE TENER EN CUENTA LO SIGUIENTE :
+PARA CREAR EL FLUJO DE TRABAJO CON LOS SERVICIOS DE AZURE:
 
-Provisión de Azure Data Lake Storage (ADLS): Primero, debes crear una cuenta de Azure Data Lake Storage Gen2 a través del portal de Azure. 
-ADLS Gen2 ofrece características de seguridad avanzadas y es altamente escalable.
+Provisión de Azure Data Lake Storage (ADLS):
+- Primero, debes crear una cuenta de Azure Data Lake Storage Gen2 a través del portal de Azure. ADLS Gen2 ofrece características de seguridad avanzadas y es altamente escalable.
 
-Configuración del espacio de trabajo de Azure Databricks: 
-Crea un espacio de trabajo de Azure Databricks si aún no tienes uno. Esto también se puede hacer a través del portal de Azure.
+Configuración del Espacio de Trabajo de Azure Databricks:
+- Crea un espacio de trabajo de Azure Databricks si aún no tienes uno. Esto también se puede hacer a través del portal de Azure.
 
-Asignación de permisos requeridos: 
-Asigna los permisos necesarios al principal de servicio de Databricks (un tipo de aplicación en Azure Active Directory) 
-para acceder al almacenamiento de Data Lake. Esto se hace generalmente asignando el rol de contribuidor de datos de 
-blob de almacenamiento al principal de servicio para la cuenta de almacenamiento de Data Lake.
+Asignación de Permisos Requeridos:
+- Asigna los permisos necesarios al principal de servicio de Databricks para acceder al almacenamiento de Data Lake. Esto se hace generalmente asignando el rol de contribuidor de datos de blob de almacenamiento al principal de servicio para la cuenta de almacenamiento de Data Lake.
 
-Configuración de Databricks para acceder a Data Lake: 
-En tu espacio de trabajo de Databricks, configura el clúster para acceder a ADLS Gen2. 
-Esto implica configurar las configuraciones necesarias 
-y las credenciales de acceso (como ID de cliente, ID de inquilino, clave secreta) en el clúster de Databricks 
-para que pueda interactuar con ADLS Gen2.
+Configuración de Databricks para Acceder a Data Lake:
+- En tu espacio de trabajo de Databricks, configura el clúster para acceder a ADLS Gen2. Esto implica configurar las configuraciones necesarias y las credenciales de acceso en el clúster de Databricks para que pueda interactuar con ADLS Gen2.
 
-Montaje de almacenamiento ADLS Gen2: 
-Puedes montar sistemas de archivos ADLS Gen2 en DBFS (Sistema de archivos de Databricks)
- utilizando DBUtils o configuraciones de Spark. Esto te permite acceder a los datos en ADLS Gen2 
- como si fuera un sistema de archivos local en Databricks.
+Montaje de Almacenamiento ADLS Gen2:
+- Puedes montar sistemas de archivos ADLS Gen2 en DBFS utilizando DBUtils o configuraciones de Spark. Esto te permite acceder a los datos en ADLS Gen2 como si fuera un sistema de archivos local en Databricks.
 
-Acceso y procesamiento de datos: 
-Una vez montado, puedes usar los cuadernos de Databricks para acceder 
-y procesar los datos almacenados en tu almacenamiento de sistema de archivos ADLS. 
-Puedes leer y escribir datos utilizando las API de Spark adecuadas.
+Acceso y Procesamiento de Datos:
+- Una vez montado, puedes usar los cuadernos de Databricks para acceder y procesar los datos almacenados en tu almacenamiento de sistema de archivos ADLS. Puedes leer y escribir datos utilizando las API de Spark adecuadas.
 
----------------------------------------------------------------------------------------------------------------------------------------
+DATABRICKS:
 
-DATABRICKS: 
+En el DataBricks se pueden emplear los Notebooks en los cuales se pueden ejecutar bloques de código en python. Estas se pueden considerar máquinas virtuales y a continuación se muestran 5 bloques de código en donde se explica qué hace cada uno.
 
-En el DataBricks se pueden emplear los Notebooks en los cuales se pueden ejecutar bloques de codigo en python
-estas se pueden considerar maquinas virtuales y a continuacion se muestran 5 bloques de codigo en donde se
-explica que hace cada uno.
+Consideraciones:
+1. En el primer bloque de código se debe diligenciar la información con su respectiva cuenta de almacenamiento y credenciales.
+2. En todos los bloques de código aparece alguna de las dos siguientes líneas de código: 
+   df = spark.read.option("multiLine", "true").json("/mnt/news/2023-12/2023-12-11_19-13-57.json")
+   Se debe modificar los nombres de las carpetas y nombre del archivo .json en esta parte ("/mnt/news/2023-12/2023-12-11_19-13-57.json")
 
-Consideraciones :
-
-1. En el primer bloque de codigo se debe diligenciar la informacion con su respectiva cuenta de almacenamiento y credenciales.
-
-2. En todos los bloques de codigo aparece alguna de las dos siguientes lineas de codigo : 
-
-df = spark.read.option("multiLine", "true").json("/mnt/news/2023-12/2023-12-11_19-13-57.json")
-
-news_df = spark.read.option("multiLine", "true").json("/mnt/news/2023-12/2023-12-11_19-13-57.json")
-
-se debe modificar los nombres de las carpetas y nombre del archivo .json en esta parte ("/mnt/news/2023-12/2023-12-11_19-13-57.json")
-
-
-
-
----------------------------------------------------------------------------------------------------------------------------------------------
-
-BLOQUE DE CODIGO NUMERO 1:
-
+BLOQUE DE CÓDIGO NÚMERO 1:
 
 Importar la clase DBUtils del módulo pyspark.dbutils
 from pyspark.dbutils import DBUtils
@@ -93,16 +68,13 @@ display(dbutils.fs.ls(mount_point))
 
 # Leer datos en formato JSON desde un archivo específico en el sistema de archivos montado
 df = spark.read.option("multiLine", "true").json("/mnt/news/2023-12/2023-12-11_19-13-57.json")
----------------------------------------------------------------------------------------------------------------------------------------------------
 
-BLOQUE DE CODIGO NUMERO 2:
+BLOQUE DE CÓDIGO NÚMERO 2:
 
 # Desmontar el punto de montaje "/mnt/news" en el sistema de archivos
 dbutils.fs.unmount("/mnt/news")
 
----------------------------------------------------------------------------------------------------------------------------------------------------
-
-BLOQUE DE CODIGO NUMERO 3:
+BLOQUE DE CÓDIGO NÚMERO 3:
 
 # Leer datos en formato JSON desde un archivo específico en el sistema de archivos montado
 df = spark.read.option("multiLine", "true").json("/mnt/news/2023-12/2023-12-11_19-13-57.json")
@@ -116,9 +88,7 @@ display(df.show())
 # Convertir a un DataFrame de Pandas (para conjuntos de datos pequeños)
 pandas_df = df.toPandas()
 
-----------------------------------------------------------------------------------------------------------------------------------------------------
-
-BLOQUE DE CODIGO NUMERO 4:
+BLOQUE DE CÓDIGO NÚMERO 4:
 
 # Importar las bibliotecas necesarias
 from pyspark.sql import SparkSession
@@ -150,9 +120,7 @@ plt.title("Número de Artículos de Noticias por Fecha")
 plt.xticks(rotation=45)
 plt.show()
 
-----------------------------------------------------------------------------------------------------------------------------------------------
-
-BLOQUE DE CODIGO NUMERO 5:
+BLOQUE DE CÓDIGO NÚMERO 5:
 
 # Importar las bibliotecas necesarias
 from pyspark.sql import SparkSession
@@ -192,3 +160,4 @@ save_path = "/mnt/news/output"
 # Escribir el DataFrame en Azure Data Lake en formato parquet (o cualquier otro formato que prefieras)
 # Coalesce el DataFrame a 1 partición y escribe en formato JSON
 final_df.coalesce(1).write.mode("overwrite").json(save_path)
+
