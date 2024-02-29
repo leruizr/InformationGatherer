@@ -1,32 +1,49 @@
 PARA CREAR EL FLUJO DE TRABAJO CON LOS SERVICIOS DE AZURE:
 
 Provisión de Azure Data Lake Storage (ADLS):
-- Primero, debes crear una cuenta de Azure Data Lake Storage Gen2 a través del portal de Azure. ADLS Gen2 ofrece características de seguridad avanzadas y es altamente escalable.
+
+- Primero, debes crear una cuenta de Azure Data Lake Storage Gen2 a través del portal de Azure. 
+  ADLS Gen2 ofrece características de seguridad avanzadas y es altamente escalable.
 
 Configuración del Espacio de Trabajo de Azure Databricks:
-- Crea un espacio de trabajo de Azure Databricks si aún no tienes uno. Esto también se puede hacer a través del portal de Azure.
+
+- Crea un espacio de trabajo de Azure Databricks si aún no tienes uno. 
+  Esto también se puede hacer a través del portal de Azure.
 
 Asignación de Permisos Requeridos:
-- Asigna los permisos necesarios al principal de servicio de Databricks para acceder al almacenamiento de Data Lake. Esto se hace generalmente asignando el rol de contribuidor de datos de blob de almacenamiento al principal de servicio para la cuenta de almacenamiento de Data Lake.
+
+- Asigna los permisos necesarios al principal de servicio de Databricks para acceder al almacenamiento de Data Lake. 
+  Esto se hace generalmente asignando el rol de contribuidor de datos de blob de almacenamiento al principal de servicio 
+  para la cuenta de almacenamiento de Data Lake.
 
 Configuración de Databricks para Acceder a Data Lake:
-- En tu espacio de trabajo de Databricks, configura el clúster para acceder a ADLS Gen2. Esto implica configurar las configuraciones necesarias y las credenciales de acceso en el clúster de Databricks para que pueda interactuar con ADLS Gen2.
+
+- En tu espacio de trabajo de Databricks, configura el clúster para acceder a ADLS Gen2. 
+Esto implica configurar las configuraciones necesarias y las credenciales de acceso en el clúster de Databricks 
+para que pueda interactuar con ADLS Gen2.
 
 Montaje de Almacenamiento ADLS Gen2:
-- Puedes montar sistemas de archivos ADLS Gen2 en DBFS utilizando DBUtils o configuraciones de Spark. Esto te permite acceder a los datos en ADLS Gen2 como si fuera un sistema de archivos local en Databricks.
+
+- Puedes montar sistemas de archivos ADLS Gen2 en DBFS utilizando DBUtils o configuraciones de Spark. 
+Esto te permite acceder a los datos en ADLS Gen2 como si fuera un sistema de archivos local en Databricks.
 
 Acceso y Procesamiento de Datos:
-- Una vez montado, puedes usar los cuadernos de Databricks para acceder y procesar los datos almacenados en tu almacenamiento de sistema de archivos ADLS. Puedes leer y escribir datos utilizando las API de Spark adecuadas.
+- Una vez montado, puedes usar los cuadernos de Databricks para acceder y procesar los datos almacenados en tu 
+almacenamiento de sistema de archivos ADLS. Puedes leer y escribir datos utilizando las API de Spark adecuadas.
 
 DATABRICKS:
 
-En el DataBricks se pueden emplear los Notebooks en los cuales se pueden ejecutar bloques de código en python. Estas se pueden considerar máquinas virtuales y a continuación se muestran 5 bloques de código en donde se explica qué hace cada uno.
+En el DataBricks se pueden emplear los Notebooks en los cuales se pueden ejecutar bloques de código en python. 
+Estas se pueden considerar máquinas virtuales y a continuación se muestran 5 bloques de código en donde se explica 
+qué hace cada uno.
 
 Consideraciones:
+
 1. En el primer bloque de código se debe diligenciar la información con su respectiva cuenta de almacenamiento y credenciales.
 2. En todos los bloques de código aparece alguna de las dos siguientes líneas de código: 
    df = spark.read.option("multiLine", "true").json("/mnt/news/2023-12/2023-12-11_19-13-57.json")
-   Se debe modificar los nombres de las carpetas y nombre del archivo .json en esta parte ("/mnt/news/2023-12/2023-12-11_19-13-57.json")
+   Se debe modificar los nombres de las carpetas y nombre del archivo .json 
+   en esta parte ("/mnt/news/2023-12/2023-12-11_19-13-57.json")
 
 BLOQUE DE CÓDIGO NÚMERO 1:
 
